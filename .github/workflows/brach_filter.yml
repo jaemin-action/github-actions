@@ -1,9 +1,9 @@
 name: branch-filter
 on:
   push:
-     branch: ["dev"]
+     branches: ["dev"]
 
-job:
+jobs:
   branch-filter: 
     runs-on: ubuntu-latest
     steps:

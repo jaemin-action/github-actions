@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  jira-dashboard:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - JIRA_BASE_URL=${JIRA_BASE_URL}
+      - JIRA_EMAIL=${JIRA_EMAIL}
+      - JIRA_API_TOKEN=${JIRA_API_TOKEN}
+      - FLASK_DEBUG=false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/config"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

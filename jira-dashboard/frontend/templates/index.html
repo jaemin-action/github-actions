@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jira Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <svg viewBox="0 0 32 32" class="jira-icon">
+                    <path d="M15.967 0L0 15.967l15.967 15.967L31.934 15.967 15.967 0zm0 9.714l6.253 6.253-6.253 6.253-6.253-6.253 6.253-6.253z" fill="currentColor"/>
+                </svg>
+                <span>Jira Dashboard</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-view="dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    대시보드
+                </a>
+                <a href="#" class="nav-item" data-view="issues">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    이슈 목록
+                </a>
+                <a href="#" class="nav-item" data-view="projects">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                    </svg>
+                    프로젝트
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="config-status" id="configStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text">연결 확인 중...</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <h1 id="pageTitle">대시보드</h1>
+                </div>
+                <div class="header-right">
+                    <select id="projectFilter" class="project-select">
+                        <option value="">모든 프로젝트</option>
+                    </select>
+                    <button class="btn-refresh" onclick="refreshData()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path>
+                        </svg>
+                        새로고침
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section id="dashboardView" class="view active">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon total">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 6v6l4 2"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">전체 이슈</span>
+                            <span class="stat-value" id="totalIssues">-</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon todo">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">할 일</span>
+                            <span class="stat-value" id="todoIssues">-</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon progress">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">진행 중</span>
+                            <span class="stat-value" id="inProgressIssues">-</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon done">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
+                                <path d="M22 4L12 14.01l-3-3"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">완료</span>
+                            <span class="stat-value" id="doneIssues">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>이슈 유형별 분포</h3>
+                        <div class="chart-container">
+                            <canvas id="issueTypeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>우선순위별 분포</h3>
+                        <div class="chart-container">
+                            <canvas id="priorityChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>상태별 현황</h3>
+                        <div class="chart-container">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assignee Table -->
+                <div class="table-card">
+                    <h3>담당자별 이슈 현황</h3>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>담당자</th>
+                                    <th>할당된 이슈</th>
+                                    <th>비율</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assigneeTableBody">
+                                <tr>
+                                    <td colspan="3" class="loading">데이터 로딩 중...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Issues View -->
+            <section id="issuesView" class="view">
+                <div class="filter-bar">
+                    <input type="text" id="jqlInput" class="jql-input" placeholder="JQL 쿼리 입력 (예: status = 'In Progress')">
+                    <button class="btn-search" onclick="searchIssues()">검색</button>
+                </div>
+                <div class="table-card">
+                    <div class="table-container">
+                        <table class="data-table issues-table">
+                            <thead>
+                                <tr>
+                                    <th>키</th>
+                                    <th>요약</th>
+                                    <th>상태</th>
+                                    <th>담당자</th>
+                                    <th>우선순위</th>
+                                    <th>유형</th>
+                                    <th>생성일</th>
+                                </tr>
+                            </thead>
+                            <tbody id="issuesTableBody">
+                                <tr>
+                                    <td colspan="7" class="loading">데이터 로딩 중...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="pagination"></div>
+                </div>
+            </section>
+
+            <!-- Projects View -->
+            <section id="projectsView" class="view">
+                <div class="projects-grid" id="projectsGrid">
+                    <div class="loading">프로젝트 로딩 중...</div>
+                </div>
+            </section>
+
+            <!-- Configuration Modal -->
+            <div id="configModal" class="modal">
+                <div class="modal-content">
+                    <h2>Jira 연결 설정 필요</h2>
+                    <p>Jira API에 연결하려면 다음 환경 변수를 설정해주세요:</p>
+                    <ul class="config-list">
+                        <li><code>JIRA_BASE_URL</code> - Jira 인스턴스 URL (예: https://your-domain.atlassian.net)</li>
+                        <li><code>JIRA_EMAIL</code> - Jira 계정 이메일</li>
+                        <li><code>JIRA_API_TOKEN</code> - Jira API 토큰</li>
+                    </ul>
+                    <p class="note">API 토큰은 <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank">Atlassian 계정 설정</a>에서 생성할 수 있습니다.</p>
+                    <button class="btn-primary" onclick="closeConfigModal()">확인</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

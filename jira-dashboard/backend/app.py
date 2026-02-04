@@ -5,6 +5,7 @@ Flask application that fetches data from Jira REST API
 
 import os
 import random
+from pathlib import Path
 from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
 import requests
@@ -12,6 +13,11 @@ from requests.auth import HTTPBasicAuth
 from datetime import datetime, timedelta
 from functools import wraps
 import json
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+env_path = Path(__file__).parent.parent / '.env'
+load_dotenv(env_path)
 
 app = Flask(__name__,
             template_folder='../frontend/templates',
